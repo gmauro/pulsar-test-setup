@@ -1,0 +1,49 @@
+- hosts: glx
+  vars:
+    - username: "ubuntu"
+    - repo_url: "https://github.com/bgruening/docker-galaxy-stable.git"
+    - repo_version: 'dev'
+    - dest_path: "~/docker-galaxy-stable"
+    - build_containers: yes
+    - export_path: /export
+  pre_tasks:
+    - name: APT update
+      become: yes
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+    - name: ensure pip3 is present
+      become: yes
+      package:
+        name: python3-pip
+        state: present
+  roles:
+    - role: docker
+      become: yes
+  tasks:  
+    - name: "ensure user part of docker group"
+      become: yes
+      user:
+        name: "{{ username }}"
+        groups: docker
+        append: yes
+
+    - name: reset ssh connection to allow user changes to affect 'current login user'
+      meta: reset_connection
+
+    - name: clone docker-galaxy-stable repository
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ dest_path }}"
+        version: "{{ repo_version }}"
+
+    - name: Build the compose containers
+      command: ./build-orchestration-images.sh --no-push --condor
+      args:
+        chdir: "{{ dest_path }}/compose"
+      when: build_containers
+
+    - name: Create export path
+      file:
+        path: "{{ export_path }}"
+        state: directory
