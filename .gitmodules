@@ -1,3 +1,0 @@
-[submodule "glx/ansible/roles/docker"]
-	path = glx/ansible/roles/docker
-	url = https://github.com/gmauro/ansible-docker.git
