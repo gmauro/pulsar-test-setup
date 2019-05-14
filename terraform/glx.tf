@@ -1,7 +1,3 @@
-data "openstack_images_image_v2" "os-image" {
-  name = "${var.os_image}"
-}
-
 resource "openstack_compute_instance_v2" "glx" {
   name            = "glx"
   image_id        = "${data.openstack_images_image_v2.os-image.id}"
