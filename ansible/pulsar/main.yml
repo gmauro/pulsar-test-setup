@@ -1,11 +1,12 @@
 - hosts: pulsar
-
+  vars:
+    - message_queue_url : "_real_message_queue_url_"
   tasks:
     - name: Replace message queue url
       replace:
         path: /opt/pulsar/config/app.yml
         regexp: '^message_queue_url.*'
-        replace: 'message_queue_url: real_message_queue_url'
+        replace: "message_queue_url: {{ message_queue_url }}"
 
     - name: Enable service pulsar, and restart it
       become: yes
