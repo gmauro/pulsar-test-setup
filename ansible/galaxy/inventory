@@ -1,2 +1,0 @@
-[galaxy]
-192.52.33.253 ansible_connection=ssh ansible_user=ubuntu ansible_python_interpreter=/usr/bin/python3

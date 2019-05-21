@@ -1,2 +1,0 @@
-[pulsar]
-192.52.34.148 ansible_connection=ssh ansible_user=centos
