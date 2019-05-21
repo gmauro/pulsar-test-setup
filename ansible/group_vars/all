@@ -1,0 +1,28 @@
+galaxy_user:
+  name: galaxy
+galaxy_instance_url: http://galaxy.ufr.garinci.com
+galaxy_config_file_path: "/srv/galaxy/config/galaxy.yml"
+galaxy_config_dir: "/srv/galaxy/var/config"
+galaxy_tools_tool_list_files: [ "files/2018-SIGU-training_course.yaml" ]
+galaxy_tools_galaxy_instance_url: "{{ galaxy_instance_url }}"
+galaxy_tools_api_key: 15a574af28d2d2b6734ca5a20266906c
+# galaxy_tools_api_key: <API key for Galaxy admin user>
+pulsar_jobs_directory: "/data/share/staging/"
+
+message_queue_url : "pyamqp://vgcn_test:EgCYJHiI3IkQL9PnG1VJa9Y@proxy.galaxyproject.eu:5671//pulsar/galaxy_vgcn?ssl=1"
+
+rabbit_host_username: "ubuntu"
+rabbit_host_dest_path: "~/docker-rabbitmq"
+rabbit_username: pulsar_test
+rabbit_password: password
+
+# CVMFS
+cvmfs_role: client
+galaxy_cvmfs_repos_enabled: true
+galaxy_cvmfs_server_urls:
+  - domain: galaxyproject.org
+    use_geoapi: true
+    urls:
+      - "http://cvmfs1-psu0.galaxyproject.org/cvmfs/@fqrn@"
+      - "http://cvmfs1-iu0.galaxyproject.org/cvmfs/@fqrn@"
+      - "http://cvmfs1-ufr0.galaxyproject.eu/cvmfs/@fqrn@"

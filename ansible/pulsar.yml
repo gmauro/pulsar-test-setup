@@ -1,0 +1,35 @@
+- hosts: pulsar
+
+  tasks:
+    - name: Replace message queue url
+      replace:
+        path: /opt/pulsar/config/app.yml
+        regexp: '^message_queue_url.*'
+        replace: "message_queue_url: {{ message_queue_url }}"
+
+#    - name: Remove transfer_files option
+#      replace:
+#        path:
+#        regexp: '.*submit_should_transfer_files.*'
+
+    - name: Copy private ssh keys
+      copy:
+        src: /home/gmauro/.ssh/cloud_bw.key
+        dest: /home/centos/.ssh/id_rsa
+        mode: 0600
+
+    - name: Copy test files
+      copy:
+        src: "{{ item.name }}"
+        dest: "/data/share/{{ item.name }}"
+        mode: "{{ item.mode }}"
+      with_items:
+        - {'name': test.job, 'mode': '0600'}
+        - {'name': test.sh, 'mode': '0700'}
+
+    - name: Ensure pulsar service is enabled, and restart it
+      become: yes
+      service:
+        name: pulsar
+        enabled: yes
+        state: restarted

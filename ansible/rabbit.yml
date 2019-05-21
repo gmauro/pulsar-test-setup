@@ -1,0 +1,47 @@
+- hosts: rabbit
+
+  pre_tasks:
+    - name: APT update
+      become: yes
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+    - name: ensure pip3 is present
+      become: yes
+      package:
+        name: python3-pip
+        state: present
+  roles:
+    - role: docker
+      become: yes
+  tasks:  
+    - name: ensure user part of docker group
+      become: yes
+      user:
+        name: "{{ rabbit_host_username }}"
+        groups: docker
+        append: yes
+
+    - name: reset ssh connection to allow user changes to affect 'current login user'
+      meta: reset_connection
+
+    - name: Install docker-compose python package.
+      become: yes
+      pip:
+        name: docker-compose
+
+    - name: Create destination path
+      file:
+        path: "{{ rabbit_host_dest_path }}"
+        state: directory
+
+    - name: Copy compose file
+      template:
+        src: docker-compose.yml.j2
+        dest: "{{ rabbit_host_dest_path }}/docker-compose.yml"
+
+    - name: Compose up
+      docker_service:
+        project_src: "docker-rabbitmq"
+        state: present
+        restarted: yes

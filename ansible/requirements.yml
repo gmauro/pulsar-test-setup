@@ -1,0 +1,6 @@
+- src: https://github.com/gmauro/ansible-docker.git
+  name: docker
+- src: https://github.com/galaxyproject/ansible-galaxy-tools.git
+  name: galaxyprojectdotorg.galaxy-tools
+- src: https://github.com/galaxyproject/ansible-cvmfs
+  name: galaxyproject.cvmfs

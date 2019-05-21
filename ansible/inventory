@@ -1,0 +1,9 @@
+[galaxy]
+galaxy.ufr.garinci.com ansible_connection=ssh ansible_user=ubuntu ansible_python_interpreter=/usr/bin/python3
+
+[pulsar]
+#192.52.34.185 ansible_connection=ssh ansible_user=centos
+pulsar.bari.garinci.com ansible_connection=ssh ansible_user=centos
+
+[rabbit]
+192.52.34.168 ansible_connection=ssh ansible_user=ubuntu ansible_python_interpreter=/usr/bin/python3
