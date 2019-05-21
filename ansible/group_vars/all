@@ -1,15 +1,16 @@
 galaxy_user:
   name: galaxy
 galaxy_instance_url: http://galaxy.ufr.garinci.com
-galaxy_config_file_path: "/srv/galaxy/config/galaxy.yml"
-galaxy_config_dir: "/srv/galaxy/var/config"
-galaxy_tools_tool_list_files: [ "files/2018-SIGU-training_course.yaml" ]
+galaxy_root_path: "/srv/galaxy"
+galaxy_config_file_path: "{galaxy_root_path}/config/galaxy.yml"
+galaxy_config_dir: "{galaxy_root_path}/var/config"
+galaxy_static_config_dir: "{galaxy_root_path}/config"
+galaxy_tools_tool_list_files: [ "files/tool_list.yml" ]
 galaxy_tools_galaxy_instance_url: "{{ galaxy_instance_url }}"
-galaxy_tools_api_key: 15a574af28d2d2b6734ca5a20266906c
-# galaxy_tools_api_key: <API key for Galaxy admin user>
+galaxy_tools_api_key: <API key for Galaxy admin user>
 pulsar_jobs_directory: "/data/share/staging/"
 
-message_queue_url : "pyamqp://vgcn_test:EgCYJHiI3IkQL9PnG1VJa9Y@proxy.galaxyproject.eu:5671//pulsar/galaxy_vgcn?ssl=1"
+message_queue_url : "pyamqp://your_message_queue_url"
 
 rabbit_host_username: "ubuntu"
 rabbit_host_dest_path: "~/docker-rabbitmq"
