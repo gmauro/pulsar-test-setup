@@ -2,9 +2,9 @@ galaxy_user:
   name: galaxy
 galaxy_instance_url: http://galaxy.ufr.garinci.com
 galaxy_root_path: "/srv/galaxy"
-galaxy_config_file_path: "{galaxy_root_path}/config/galaxy.yml"
-galaxy_config_dir: "{galaxy_root_path}/var/config"
-galaxy_static_config_dir: "{galaxy_root_path}/config"
+galaxy_config_file_path: "{{galaxy_root_path}}/config/galaxy.yml"
+galaxy_config_dir: "{{galaxy_root_path}}/var/config"
+galaxy_static_config_dir: "{{galaxy_root_path}}/config"
 galaxy_tools_tool_list_files: [ "files/tool_list.yml" ]
 galaxy_tools_galaxy_instance_url: "{{ galaxy_instance_url }}"
 galaxy_tools_api_key: <API key for Galaxy admin user>

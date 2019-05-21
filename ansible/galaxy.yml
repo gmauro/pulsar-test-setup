@@ -14,6 +14,6 @@
         line: "    job_config_file: {{ galaxy_config_dir }}/job_conf.xml"
         state: present
 
-  roles:
-    - galaxyprojectdotorg.galaxy-tools
-    - galaxyproject.cvmfs
+#  roles:
+#    - galaxyprojectdotorg.galaxy-tools
+#    - galaxyproject.cvmfs
