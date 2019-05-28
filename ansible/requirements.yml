@@ -4,3 +4,6 @@
   name: galaxyprojectdotorg.galaxy-tools
 - src: https://github.com/galaxyproject/ansible-cvmfs
   name: galaxyproject.cvmfs
+- cyverse-ansible.singularity
+- geerlingguy.java
+- geerlingguy.docker

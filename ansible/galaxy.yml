@@ -1,6 +1,12 @@
 - hosts: galaxy
   become: yes
 
+  handlers:
+    - name: restart galaxy
+      supervisorctl:
+        name: galaxy
+        state: restarted
+
   pre_tasks:
     - name: Copy job_conf.xml
       template:
@@ -8,12 +14,53 @@
         dest: "{{ galaxy_config_dir }}/job_conf.xml"
         owner: "{{ galaxy_user.name }}"
         group: "{{ galaxy_user.name }}"
+      notify: restart galaxy
+
     - name: Ensure job_config_file exists in the galaxy.yml
       lineinfile:
         path: "{{ galaxy_config_file_path }}"
         line: "    job_config_file: {{ galaxy_config_dir }}/job_conf.xml"
         state: present
+      notify: restart galaxy
 
-#  roles:
-#    - galaxyprojectdotorg.galaxy-tools
-#    - galaxyproject.cvmfs
+    - name: Set tool_data_table_config_path to CVMFS one
+      replace:
+        path: "{{galaxy_config_file_path}}"
+        regexp: '^    tool_data_table_config_path.*'
+        replace: '    tool_data_table_config_path: /cvmfs/data.galaxyproject.org/byhand/location/tool_data_table_conf.xml,/cvmfs/data.galaxyproject.org/managed/location/tool_data_table_conf.xml'
+      notify: restart galaxy
+
+    - name: Copy containers settings files
+      copy:
+        src: container_resolvers_conf.xml
+        dest: "{{ galaxy_config_dir }}/containers_resolver_config_file.xml"
+        owner: "{{ galaxy_user.name }}"
+        group: "{{ galaxy_user.name }}"
+      notify: restart galaxy
+
+    - name: Set container settings
+      lineinfile:
+        path: "{{galaxy_config_file_path}}"
+        line: "{{ item }}"
+      with_items:
+        - '    enable_beta_mulled_containers: true'
+        - "    containers_resolvers_config_file: {{ galaxy_config_dir }}/containers_resolvers_config_file.xml"
+        - "    container_image_cache_path: {{ galaxy_root_path }}/var/database/container_cache"
+        - "    involucro_path: {{ galaxy_root_path }}/var/database/dependencies/involucro"
+      notify: restart galaxy
+
+
+
+  roles:
+    - galaxyprojectdotorg.galaxy-tools
+    - galaxyproject.cvmfs
+    - cyverse-ansible.singularity
+    - geerlingguy.java
+    - geerlingguy.docker
+
+  post_tasks:
+    - name: "ensure user part of docker group"
+      user:
+        name: "{{ galaxy_user.name }}"
+        groups: docker
+        append: yes
