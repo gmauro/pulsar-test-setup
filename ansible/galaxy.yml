@@ -8,6 +8,24 @@
         state: restarted
 
   pre_tasks:
+    - name: Copy job_metrics settings files
+      copy:
+        src: job_metrics_conf.xml
+        dest: "{{ galaxy_config_dir }}/job_metrics_conf.xml"
+        owner: "{{ galaxy_user.name }}"
+        group: "{{ galaxy_user.name }}"
+      notify: restart galaxy
+
+    - name: Ensure job_metrics config exists in the galaxy.yml
+      lineinfile:
+        path: "{{ galaxy_config_file_path }}"
+        line: "{{ item }}"
+        state: present
+      with_items:
+        - "    expose_potentially_sensitive_job_metrics: True"
+        - "    job_metrics_config_file: {{ galaxy_config_dir }}/job_metrics_conf.xml"
+      notify: restart galaxy
+
     - name: Copy job_conf.xml
       template:
         src: job_conf.xml.j2

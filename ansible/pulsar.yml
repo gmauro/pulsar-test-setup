@@ -7,10 +7,18 @@
         regexp: '^message_queue_url.*'
         replace: "message_queue_url: {{ message_queue_url }}"
 
-#    - name: Remove transfer_files option
-#      replace:
-#        path:
-#        regexp: '.*submit_should_transfer_files.*'
+    - name: Copy job_metrics settings files
+      copy:
+        src: job_metrics_conf.xml
+        dest: "/opt/pulsar/config/job_metrics_conf.xml"
+
+    - name: Ensure job_metrics config exists in the galaxy.yml
+      lineinfile:
+        path: /opt/pulsar/config/app.yml
+        line: "{{ item }}"
+        state: present
+      with_items:
+        - "job_metrics_config_file: /opt/pulsar/config/job_metrics_conf.xml"
 
     - name: Copy private ssh keys
       copy:

@@ -6,10 +6,10 @@ help:
 	@echo "  rabbit                   to configure rabbitMQ server"
 
 
-galaxy: install_roles
+galaxy: install_roles get_job_metrics
 	ansible-playbook galaxy.yml
 
-pulsar: install_roles
+pulsar: install_roles get_job_metrics
 	ansible-playbook pulsar.yml
 
 rabbit: install_roles
@@ -17,6 +17,9 @@ rabbit: install_roles
 
 install_roles:
 	ansible-galaxy install -p roles -r requirements.yml
+
+get_job_metrics:
+	wget -O files/job_metrics_conf.xml https://raw.githubusercontent.com/usegalaxy-eu/infrastructure-playbook/master/files/galaxy/config/job_metrics_conf.xml
 
 clean:
 	rm -rf roles
