@@ -9,32 +9,30 @@
             <param id="amqp_url">{{ message_queue_url }}</param>
         </plugin>
     </plugins>
-    <destinations default="remote_cluster_MQ">
+    <destinations default="singularity_remote_cluster_MQ">
         <destination id="local" runner="local"/>
-        <destination id="remote_cluster_MQ" runner="pulsarMQ">
-            <!-- Tell Galaxy where files are being stored on remote system, so
-                 the web server can simply ask for this information.
-            -->
-            <param id="jobs_directory">{{ pulsar_jobs_directory }}</param>
-            <!-- Remaining parameters same as previous example -->
-            <param id="dependency_resolution">remote</param>
-            <param id="default_file_action">remote_transfer</param>
-            <!-- AMQP does not guarantee that a published message is received by
-               the AMQP server, so Galaxy/Pulsar can request that the consumer
-               acknowledge messages and will resend them if acknowledgement is
-               not received after a configurable timeout.  -->
-            <param id="amqp_acknowledge">True</param>
-             <!-- Galaxy reuses Pulsar's persistence_directory parameter (via the
-                   Pulsar client lib) to store a record of received
-                   acknowledgements, and to keep track of messages which have not
-                   been acknowledged. -->
-            <param id="persistence_directory">/data/share/persisted_data</param>
-              <!-- Number of seconds to wait for an acknowledgement before
-                   republishing a message. -->
-            <param id="amqp_ack_republish_time">30</param>
-             <!-- Pulsar job manager to communicate with (see Pulsar
-                   docs for information on job managers). -->
-            <param id="manager">_default_</param>
+        <destination id="singularity_local" runner="local">
+            <expand macro="dest_tmp_env" />
+            <param id="singularity_enabled">true</param>
+            <param id="singularity_volumes">$defaults</param>
+            <param id="singularity_default_container_id">/cvmfs/singularity.galaxyproject.org/u/b/ubuntu:18.04</param>
+        </destination>
+        <destination id="docker_remote_cluster_MQ" runner="pulsarMQ">
+            <param id="docker_enabled">true</param>
+            <param id="docker_volumes">$defaults</param>
+            <expand macro="dest_tmp_env" />
+            <expand macro="dest_pulsar_common_params" />
+        </destination>
+        <destination id="singularity_remote_cluster_MQ" runner="pulsarMQ">
+            <param id="singularity_enabled">true</param>
+            <param id="singularity_volumes">$defaults</param>
+            <param id="singularity_default_container_id">/cvmfs/singularity.galaxyproject.org/u/b/ubuntu:18.04</param>
+            <expand macro="dest_tmp_env" />
+            <expand macro="dest_pulsar_common_params" />
+        </destination>
+        <destination id="conda_remote_cluster_MQ" runner="pulsarMQ">
+            <expand macro="dest_tmp_env" />
+            <expand macro="dest_pulsar_common_params" />
         </destination>
     </destinations>
     <tools>
@@ -42,4 +40,24 @@
         <tool id="toolshed.g2.bx.psu.edu/repos/iuc/snpeff/snpEff_download/4.1.0" destination="local" />
         <tool id="toolshed.g2.bx.psu.edu/repos/iuc/snpeff/snpEff_download/4.3r.1" destination="local" />
     </tools>
+    <macros>
+        <xml name="dest_tmp_env">
+            <env id="TEMP">$(dirname ${BASH_SOURCE[0]})/_job_tmp</env>
+            <env id="TMPDIR">$TEMP</env>
+            <env id="_JAVA_OPTIONS">-Djava.io.tmpdir=$TEMP</env>
+            <env exec="mkdir -p $TEMP" />
+        </xml>
+        <xml name="dest_pulsar_common_params">
+            <param id="transport">curl</param>
+            <param id="remote_metadata">false</param>
+            <param id="default_file_action">remote_transfer</param>
+            <param id="dependency_resolution">remote</param>
+            <param id="jobs_directory">{{ pulsar_jobs_directory }}</param>
+            <param id="amqp_acknowledge">True</param>
+            <param id="persistence_directory">/data/share/persisted_data</param>
+            <param id="amqp_ack_republish_time">30</param>
+            <param id="manager">_default_</param>
+            <env id="LC_ALL">C</env>
+        </xml>
+    </macros>
 </job_conf>
