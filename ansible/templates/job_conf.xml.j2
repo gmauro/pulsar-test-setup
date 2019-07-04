@@ -2,14 +2,43 @@
 <job_conf>
     <plugins workers="2">
         <plugin id="local" type="runner" load="galaxy.jobs.runners.local:LocalJobRunner"/>
-        <plugin id="pulsarMQ" type="runner" load="galaxy.jobs.runners.pulsar:PulsarMQJobRunner">
-            <!-- Must tell Pulsar where to send files. -->
+        <plugin id="pulsarMQ_bari" type="runner" load="galaxy.jobs.runners.pulsar:PulsarMQJobRunner">
             <param id="galaxy_url">{{ galaxy_instance_url }}</param>
-            <!-- Message Queue Connection (should match message_queue_url in Pulsar's app.yml) -->
-            <param id="amqp_url">{{ message_queue_url }}</param>
+            <param id="amqp_url">{{ message_queue_url_bari }}</param>
+            <param id="manager">_default_</param>
+            <param id="amqp_acknowledge">True</param>
+            <param id="amqp_ack_republish_time">300</param>
+            <param id="amqp_consumer_timeout">2.0</param>
+            <param id="amqp_publish_retry">True</param>
+            <param id="amqp_publish_retry_max_retries">60</param>
+        </plugin>
+        <plugin id="pulsarMQ_belgium" type="runner" load="galaxy.jobs.runners.pulsar:PulsarMQJobRunner">
+            <param id="galaxy_url">{{ galaxy_instance_url }}</param>
+            <param id="amqp_url">{{ message_queue_url_belgium }}</param>
+            <param id="manager">_default_</param>
+            <param id="amqp_acknowledge">True</param>
+            <param id="amqp_ack_republish_time">30</param>
+        </plugin>
+        <plugin id="pulsarMQ_freiburg" type="runner" load="galaxy.jobs.runners.pulsar:PulsarMQJobRunner">
+            <param id="galaxy_url">{{ galaxy_instance_url }}</param>
+            <param id="amqp_url">{{ message_queue_url_freiburg }}</param>
+            <param id="manager">_default_</param>
+            <param id="amqp_acknowledge">True</param>
+            <param id="amqp_ack_republish_time">30</param>
+        </plugin>
+        <plugin id="pulsarMQ_tuebingen" type="runner" load="galaxy.jobs.runners.pulsar:PulsarMQJobRunner">
+            <param id="galaxy_url">{{ galaxy_instance_url }}</param>
+            <param id="amqp_url">{{ message_queue_url_tuebingen }}</param>
+            <param id="manager">_default_</param>
+            <param id="amqp_acknowledge">True</param>
+            <param id="amqp_ack_republish_time">30</param>
         </plugin>
     </plugins>
-    <destinations default="singularity_remote_cluster_MQ">
+    <destinations default="conda_remote_cluster_MQ">
+         <destination id="dynamic_pulsar" runner="dynamic">
+          <param id="type">python</param>
+          <param id="function">rerouting_pulsar_jobs</param>
+        </destination>
         <destination id="local" runner="local"/>
         <destination id="singularity_local" runner="local">
             <expand macro="dest_tmp_env" />
@@ -23,22 +52,23 @@
             <expand macro="dest_tmp_env" />
             <expand macro="dest_pulsar_common_params" />
         </destination>
-        <destination id="singularity_remote_cluster_MQ" runner="pulsarMQ">
+        <destination id="singularity_remote_cluster_MQ" runner="pulsarMQ_freiburg">
             <param id="singularity_enabled">true</param>
             <param id="singularity_volumes">$defaults</param>
-            <param id="singularity_default_container_id">/cvmfs/singularity.galaxyproject.org/u/b/ubuntu:18.04</param>
+            <env id="SINGULARITY_CACHEDIR">/data/share/var/database/container_cache</env>
             <expand macro="dest_tmp_env" />
             <expand macro="dest_pulsar_common_params" />
         </destination>
-        <destination id="conda_remote_cluster_MQ" runner="pulsarMQ">
+        <destination id="conda_remote_cluster_MQ" runner="pulsarMQ_tuebingen">
             <expand macro="dest_tmp_env" />
             <expand macro="dest_pulsar_common_params" />
         </destination>
     </destinations>
     <tools>
         <tool id="upload1" destination="local" />
-        <tool id="toolshed.g2.bx.psu.edu/repos/iuc/snpeff/snpEff_download/4.1.0" destination="local" />
-        <tool id="toolshed.g2.bx.psu.edu/repos/iuc/snpeff/snpEff_download/4.3r.1" destination="local" />
+        <tool id="toolshed.g2.bx.psu.edu/repos/iuc/snpeff/snpEff_download/4.1.0" destination="conda_remote_cluster_MQ" />
+        <tool id="toolshed.g2.bx.psu.edu/repos/iuc/snpeff/snpEff_download/4.3r.1" destination="conda_remote_cluster_MQ" />
+        <tool id="toolshed.g2.bx.psu.edu/repos/iuc/snpeff/snpEff/4.1.0" destination="conda_remote_cluster_MQ" />
     </tools>
     <macros>
         <xml name="dest_tmp_env">
@@ -53,10 +83,8 @@
             <param id="default_file_action">remote_transfer</param>
             <param id="dependency_resolution">remote</param>
             <param id="jobs_directory">{{ pulsar_jobs_directory }}</param>
-            <param id="amqp_acknowledge">True</param>
+            <param id="rewrite_parameters">true</param>
             <param id="persistence_directory">/data/share/persisted_data</param>
-            <param id="amqp_ack_republish_time">30</param>
-            <param id="manager">_default_</param>
             <env id="LC_ALL">C</env>
         </xml>
     </macros>
