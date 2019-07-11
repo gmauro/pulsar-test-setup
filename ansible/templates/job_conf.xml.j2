@@ -2,90 +2,36 @@
 <job_conf>
     <plugins workers="2">
         <plugin id="local" type="runner" load="galaxy.jobs.runners.local:LocalJobRunner"/>
-        <plugin id="pulsarMQ_bari" type="runner" load="galaxy.jobs.runners.pulsar:PulsarMQJobRunner">
-            <param id="galaxy_url">{{ galaxy_instance_url }}</param>
-            <param id="amqp_url">{{ message_queue_url_bari }}</param>
-            <param id="manager">_default_</param>
-            <param id="amqp_acknowledge">True</param>
-            <param id="amqp_ack_republish_time">300</param>
-            <param id="amqp_consumer_timeout">2.0</param>
-            <param id="amqp_publish_retry">True</param>
-            <param id="amqp_publish_retry_max_retries">60</param>
-        </plugin>
-        <plugin id="pulsarMQ_belgium" type="runner" load="galaxy.jobs.runners.pulsar:PulsarMQJobRunner">
-            <param id="galaxy_url">{{ galaxy_instance_url }}</param>
-            <param id="amqp_url">{{ message_queue_url_belgium }}</param>
-            <param id="manager">_default_</param>
-            <param id="amqp_acknowledge">True</param>
-            <param id="amqp_ack_republish_time">30</param>
-        </plugin>
-        <plugin id="pulsarMQ_freiburg" type="runner" load="galaxy.jobs.runners.pulsar:PulsarMQJobRunner">
-            <param id="galaxy_url">{{ galaxy_instance_url }}</param>
-            <param id="amqp_url">{{ message_queue_url_freiburg }}</param>
-            <param id="manager">_default_</param>
-            <param id="amqp_acknowledge">True</param>
-            <param id="amqp_ack_republish_time">30</param>
-        </plugin>
-        <plugin id="pulsarMQ_tuebingen" type="runner" load="galaxy.jobs.runners.pulsar:PulsarMQJobRunner">
-            <param id="galaxy_url">{{ galaxy_instance_url }}</param>
-            <param id="amqp_url">{{ message_queue_url_tuebingen }}</param>
-            <param id="manager">_default_</param>
-            <param id="amqp_acknowledge">True</param>
-            <param id="amqp_ack_republish_time">30</param>
-        </plugin>
+        {% for destination in destinations %}
+            <plugin id="{{ destination.name|lower }}_runner" type="runner" load="galaxy.jobs.runners.pulsar:{{ destination.type }}">
+                <param id="galaxy_url">{{ galaxy_instance_url }}</param>
+                <param id="amqp_url">{{ destination.amqp_url }}</param>
+                 <param id="manager">production</param>
+            </plugin>
+        {% endfor %}
     </plugins>
-    <destinations default="conda_remote_cluster_MQ">
-         <destination id="dynamic_pulsar" runner="dynamic">
+    <destinations default="local">
+        <destination id="dynamic_runner" runner="dynamic">
           <param id="type">python</param>
-          <param id="function">rerouting_pulsar_jobs</param>
+          <param id="function">dynamic_destination</param>
         </destination>
-        <destination id="local" runner="local"/>
-        <destination id="singularity_local" runner="local">
-            <expand macro="dest_tmp_env" />
-            <param id="singularity_enabled">true</param>
-            <param id="singularity_volumes">$defaults</param>
-            <param id="singularity_default_container_id">/cvmfs/singularity.galaxyproject.org/u/b/ubuntu:18.04</param>
-        </destination>
-        <destination id="docker_remote_cluster_MQ" runner="pulsarMQ">
-            <param id="docker_enabled">true</param>
-            <param id="docker_volumes">$defaults</param>
-            <expand macro="dest_tmp_env" />
-            <expand macro="dest_pulsar_common_params" />
-        </destination>
-        <destination id="singularity_remote_cluster_MQ" runner="pulsarMQ_freiburg">
-            <param id="singularity_enabled">true</param>
-            <param id="singularity_volumes">$defaults</param>
-            <env id="SINGULARITY_CACHEDIR">/data/share/var/database/container_cache</env>
-            <expand macro="dest_tmp_env" />
-            <expand macro="dest_pulsar_common_params" />
-        </destination>
-        <destination id="conda_remote_cluster_MQ" runner="pulsarMQ_tuebingen">
-            <expand macro="dest_tmp_env" />
-            <expand macro="dest_pulsar_common_params" />
-        </destination>
+        <destination id="local" runner="local" />
+        {% for destination in destinations %}
+            <destination id="pulsar_{{ destination.name|lower }}" runner="{{ destination.name|lower }}_runner">
+                <param id="jobs_directory">{{ destination.jobs_directory_dir }}</param>
+                <param id="persistence_directory">{{ destination.persistence_dir }}</param>
+                {% for key, value in destination.job_conf_params.items() %}
+                    <param id="{{ key }}">{{ value }}</param>
+                {% endfor %}
+            </destination>
+        {% endfor %}
     </destinations>
     <tools>
         <tool id="upload1" destination="local" />
-        <tool id="toolshed.g2.bx.psu.edu/repos/iuc/snpeff/snpEff_download/4.1.0" destination="conda_remote_cluster_MQ" />
-        <tool id="toolshed.g2.bx.psu.edu/repos/iuc/snpeff/snpEff_download/4.3r.1" destination="conda_remote_cluster_MQ" />
-        <tool id="toolshed.g2.bx.psu.edu/repos/iuc/snpeff/snpEff/4.1.0" destination="conda_remote_cluster_MQ" />
+        <tool id="__SET_METADATA__" destination="local" />
+        <tool id="toolshed.g2.bx.psu.edu/repos/iuc/snpeff/snpEff_download/4.1.0" destination="local" />
+        <tool id="toolshed.g2.bx.psu.edu/repos/iuc/snpeff/snpEff_download/4.3r.1" destination="local" />
+        <tool id="toolshed.g2.bx.psu.edu/repos/bgruening/prepare_ligands_for_docking/prepare_ligands_for_docking/2.4.2.0" destination="local" />
+        <tool id="toolshed.g2.bx.psu.edu/repos/bgruening/autodock_vina/docking/0.2.1" destination="dynamic_runner" />
     </tools>
-    <macros>
-        <xml name="dest_tmp_env">
-            <env id="TEMP">$(dirname ${BASH_SOURCE[0]})/_job_tmp</env>
-            <env id="TMPDIR">$TEMP</env>
-            <env id="_JAVA_OPTIONS">-Djava.io.tmpdir=$TEMP</env>
-            <env exec="mkdir -p $TEMP" />
-        </xml>
-        <xml name="dest_pulsar_common_params">
-            <param id="transport">curl</param>
-            <param id="remote_metadata">false</param>
-            <param id="default_file_action">remote_transfer</param>
-            <param id="dependency_resolution">remote</param>
-            <param id="jobs_directory">{{ pulsar_jobs_directory }}</param>
-            <param id="rewrite_parameters">true</param>
-            <param id="persistence_directory">/data/share/persisted_data</param>
-            <env id="LC_ALL">C</env>
-        </xml>
-    </macros>
 </job_conf>

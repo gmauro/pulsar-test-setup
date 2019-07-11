@@ -34,14 +34,26 @@
 #  * install_resolver_dependencies: True or False - whether to install dependencies
 # through a resolver (e.g Conda). (default: False)
 tools:
-- name: bedtools
-  owner: iuc
-  tool_panel_section_label: 'BED tools'
-  revisions:
-  - dde39ba9c031
+  - name: bedtools
+    owner: iuc
+    tool_panel_section_label: 'BED tools'
+    revisions:
+      - dde39ba9c031
 
-- name: samtools_stats
-  owner: devteam
-  tool_panel_section_label: 'SAM tools'
-  revisions:
-  - 793ad847121d
+  - name: samtools_stats
+    owner: devteam
+    tool_panel_section_label: 'SAM tools'
+    revisions:
+      - 793ad847121d
+
+  - name: prepare_ligands_for_docking
+    owner: bgruening
+    tool_panel_section_label: 'VINA tools'
+    revisions:
+      - 06340f46ecb8
+
+  - name: autodock_vina
+    owner: bgruening
+    tool_panel_section_label: 'VINA tools'
+    revisions:
+      - 0ae768a0e5c0

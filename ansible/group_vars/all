@@ -1,6 +1,6 @@
 galaxy_user:
   name: galaxy
-galaxy_instance_url: http://galaxy.ufr.garinci.com
+galaxy_instance_url: http://galaxy.url
 galaxy_root_path: "/srv/galaxy"
 galaxy_config_file_path: "{{galaxy_root_path}}/config/galaxy.yml"
 galaxy_config_dir: "{{galaxy_root_path}}/var/config"
@@ -28,3 +28,13 @@ galaxy_cvmfs_server_urls:
       - "http://cvmfs1-psu0.galaxyproject.org/cvmfs/@fqrn@"
       - "http://cvmfs1-iu0.galaxyproject.org/cvmfs/@fqrn@"
 
+# This is just a pro memoria
+#patches:
+#  01:
+#    name: "Implement a hostname metric which works for condor"
+#    url: https://github.com/usegalaxy-eu/galaxy/commit/f283ce930331024a92c36d2897d10f4244dc7eff.patch
+#    path: patches/f283ce930331024a92c36d2897d10f4244dc7eff.patch
+
+apply_patches: true
+patches_to_apply:
+  - { 'src': 'patches/f283ce930331024a92c36d2897d10f4244dc7eff.patch', 'basedir': '/srv/galaxy/server', 'state': 'present', 'backup': 'yes' }

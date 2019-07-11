@@ -41,44 +41,55 @@
         state: present
       notify: restart galaxy
 
-    - name: Set tool_data_table_config_path to CVMFS one
-      replace:
-        path: "{{galaxy_config_file_path}}"
-        regexp: '^    tool_data_table_config_path.*'
-        replace: '    tool_data_table_config_path: /cvmfs/data.galaxyproject.org/byhand/location/tool_data_table_conf.xml,/cvmfs/data.galaxyproject.org/managed/location/tool_data_table_conf.xml'
-      notify: restart galaxy
-
-    - name: Copy containers settings files
+    - name: Copy dynamic_destination.py
       copy:
-        src: container_resolvers_conf.xml
-        dest: "{{ galaxy_config_dir }}/containers_resolver_config_file.xml"
+        src: dynamic_destination.py
+        dest: "{{ galaxy_root_path }}/server/lib/galaxy/jobs/rules/dynamic_destination.py"
         owner: "{{ galaxy_user.name }}"
         group: "{{ galaxy_user.name }}"
       notify: restart galaxy
 
-    - name: Set container settings
-      lineinfile:
-        path: "{{galaxy_config_file_path}}"
-        line: "{{ item }}"
-      with_items:
-        - '    enable_beta_mulled_containers: true'
-        - "    containers_resolvers_config_file: {{ galaxy_config_dir }}/containers_resolvers_config_file.xml"
-        - "    container_image_cache_path: {{ galaxy_root_path }}/var/database/container_cache"
-        - "    involucro_path: {{ galaxy_root_path }}/var/database/dependencies/involucro"
+    - name: Apply patch to multiple files under basedir
+      patch:
+        src: "{{ item.src }}"
+        basedir: "{{ item.basedir }}"
+        strip: 1
+        state: "{{ item.state }}"
+        backup: "{{ item.backup }}"
+      loop: "{{ patches_to_apply }}"
+      when: apply_patches | bool
       notify: restart galaxy
 
+#    - name: Copy containers settings files
+#      copy:
+#        src: container_resolvers_conf.xml
+#        dest: "{{ galaxy_config_dir }}/containers_resolver_config_file.xml"
+#        owner: "{{ galaxy_user.name }}"
+#        group: "{{ galaxy_user.name }}"
+#      notify: restart galaxy
+#
+#    - name: Set container settings
+#      lineinfile:
+#        path: "{{galaxy_config_file_path}}"
+#        line: "{{ item }}"
+#      with_items:
+#        - '    enable_beta_mulled_containers: true'
+#        - "    containers_resolvers_config_file: {{ galaxy_config_dir }}/containers_resolvers_config_file.xml"
+#        - "    container_image_cache_path: {{ galaxy_root_path }}/var/database/container_cache"
+#        - "    involucro_path: {{ galaxy_root_path }}/var/database/dependencies/involucro"
+#      notify: restart galaxy
+#
 
 
   roles:
     - galaxyprojectdotorg.galaxy-tools
-    - galaxyproject.cvmfs
-    - cyverse-ansible.singularity
-    - geerlingguy.java
-    - geerlingguy.docker
+#    - cyverse-ansible.singularity
+#    - geerlingguy.java
+#    - geerlingguy.docker
 
-  post_tasks:
-    - name: "ensure user part of docker group"
-      user:
-        name: "{{ galaxy_user.name }}"
-        groups: docker
-        append: yes
+#  post_tasks:
+#    - name: "ensure user part of docker group"
+#      user:
+#        name: "{{ galaxy_user.name }}"
+#        groups: docker
+#        append: yes
